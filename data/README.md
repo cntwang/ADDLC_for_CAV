@@ -1,1 +1,3 @@
-22 generated tables support Figures 2--15 and the algorithm summary. Rebuild with `python generate_data.py all --from-records records --data generated`. Plot with `cav-dl-plot all --data generated --output outputs/figures`. Field definitions are in `docs/csv_columns.md`; source hashes and cohort information are in `manifest.json`. Figure 9 follows the supplied manuscript's p=0.3--0.9 range.
+# Plotting data
+
+`fig*.csv` and `algorithm_summary.csv` are generated from `records/`. Python files in this directory generate demand and aggregate simulation output; plotting functions only read CSVs. Use the root README commands to regenerate the data and figures. Raw records and scenario seeds are retained.

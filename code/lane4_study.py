@@ -82,7 +82,7 @@ def prepare():
     EVAL.mkdir(parents=True, exist_ok=True)
     if (EVAL / "protocol.json").exists():
         return
-    config = json.loads((PROJECT / "configs/training.json").read_text())
+    config = json.loads((PROJECT / "defaults.json").read_text())
     config["ppo"]["n_steps"] = 512
     days = json.loads((DATA / "manifest.json").read_text())["date_splits"]
     validation = []
