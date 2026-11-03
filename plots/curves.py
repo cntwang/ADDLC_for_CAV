@@ -1,6 +1,7 @@
-
+"""Preaggregated learning curves and PeMS reward comparisons (Figs. 3, 12)."""
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from cav_dl.utils.io import read_table
@@ -24,7 +25,7 @@ def algorithms(data, output):
                 x, group["mean"] - group.seed_sd,
                 group["mean"] + group.seed_sd, color=color, alpha=.2,
             )
-        ax.set(xlim=(0, 1), xlabel="Training steps ($10^6$)", ylabel=label)
+        ax.set(xlim=(0, 1), xlabel="RL control decisions ($10^6$)", ylabel=label)
         if metric == "reward5":
             ax.set(ylim=(-40, 20), yticks=[-40, -20, 0, 20])
         ax.legend(fontsize=13)
@@ -43,13 +44,13 @@ def pems(training, penetration, dates, output):
         x, train["mean"] - train.seed_sd, train["mean"] + train.seed_sd,
         color="#b4494e", alpha=.2,
     )
-    ax.set(xlabel="Training steps ($10^6$)", ylabel="Episodic cumulative reward")
+    ax.set(xlabel="RL control decisions ($10^6$)", ylabel="Episodic cumulative reward")
     ax.legend(fontsize=13)
     ax.grid(alpha=.15)
     save(fig, output, "fig12_a")
     settings = [
         ("b", ratios, "p", "CAV penetration rate"),
-        ("c", days[days.scope.eq("date")], "key", "Date"),
+        ("c", days[days.scope.eq("date") & pd.to_datetime(days["key"], errors="coerce").dt.dayofweek.lt(5)], "key", "Date"),
         ("d", days[days.scope.eq("weekday")], "key", "Day of week"),
     ]
     for letter, table, key, xlabel in settings:
@@ -64,7 +65,7 @@ def pems(training, penetration, dates, output):
             ax.fill_between(x, group.lower95, group.upper95, color=color, alpha=.16)
         if key != "p":
             labels = [str(k)[5:] for k in keys] if letter == "c" else [
-                "Mon", "Tue", "Wed", "Thu", "Fri"
+                "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
             ]
             ax.set_xticks(x, labels, rotation=45 if letter == "c" else 0)
             if letter == "c":

@@ -1,0 +1,15 @@
+figure,module,csv,source
+2,demand.py,fig02.csv,data/profiles.py: hourly_profile
+3,curves.py,fig03.csv,records/training/algorithms;algorithms/raw.csv;synthetic/raw.csv
+4,ablation.py,fig04_training.csv;fig04_test.csv,synthetic/raw.csv;training/ablation
+5,timeseries.py,fig05.csv;fig05_input.csv;fig05_lanes.csv,examples/figure05/generate.py
+6,velocity.py,fig06.csv,synthetic/cells.csv
+7,spatial.py,fig07.csv,synthetic/units.csv
+8,spatial.py,fig08.csv,synthetic/raw.csv
+9,spatial.py,fig09.csv,synthetic/raw.csv
+10,compliance.py,fig10.csv,synthetic/raw.csv;compliance/raw.csv
+11,demand.py,fig11.csv,assets/pems/daily_flows.npz
+12,curves.py,fig12_training.csv;fig12_penetration.csv;fig12_dates.csv,pems_penetration/raw.csv;pems_dates/raw.csv;training/pems
+13,timeseries.py,fig13.csv;fig13_lanes.csv;fig13_difference.csv,pems_spatial/trace.csv;controls.csv
+14,timeseries.py,fig14.csv,pems_spatial/states.csv
+15,lanes.py,fig15.csv,lane4/raw.csv;lane5/raw.csv

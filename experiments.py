@@ -1,4 +1,5 @@
 import argparse
+import csv
 import hashlib
 import json
 import multiprocessing as mp
@@ -8,11 +9,17 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from cav_dl.utils.io import append_record, export_table
 
 SEEDS = [202610150, 202610151, 202610152]
 ARMS = ['Full', 'NoDensity', 'NoCapacity', 'NoSafety', 'NoTime', 'NoEarlyPenalty']
 KEY = ['case_id', 'arm', 'training_seed', 'lanes', 'compliance']
+COLUMNS = ['series', 'job_id', *KEY, 'p', 'date', 'rep', 'traffic_seed', 'scenario_sha256',
+    'native_episode_reward', 'native_reason', 'J_fixed_control', 'complete_tts', 'mean_entry_wait_h',
+    'fixed_departures', 'total_departures', 'total_vehicles', 'end_step', 'success',
+    'executed_lane_switches', 'rejected_controls', 'max_mass_error', 'max_CAV_error', 'area_error_max',
+    'CAV_mean_system_minutes', 'HV_mean_system_minutes', 'full_high_occupancy_vehicle_hours',
+    'vehicle_km', 'source_road_fuel_kg', 'source_queue_fuel_kg', 'source_admission_fuel_kg',
+    'source_total_fuel_kg', 'density_std_units', 'critical_density_RMSE', 'physical_failure', 'error']
 CACHE = {}
 PROJECT = None
 OUTPUT = None
@@ -42,7 +49,12 @@ def plan(project, figures, limit=None):
     cases = read_cases(project, 'test_cases_3lane.csv', limit)
     for case in cases:
         p = round(float(case['p']), 8)
-        spatial = bool(figures & {6, 7, 8}) and .4 <= p <= .9
+        if 3 in figures:
+            for seed in SEEDS:
+                add(case, 'synthetic', 'Full', seed)
+                for algorithm in ['SAC', 'DQN']:
+                    add(case, 'algorithms', algorithm, seed, native=True)
+        spatial = bool(figures & {6, 7, 8}) and .1 <= p <= .9
         if 4 in figures:
             for arm in ARMS:
                 for seed in SEEDS:
@@ -51,7 +63,7 @@ def plan(project, figures, limit=None):
             for seed in SEEDS: add(case, 'synthetic', 'Full', seed, mode='spatial')
             for arm in ['Rule', 'FS1', 'FS2', 'FS3', 'FS4', 'FS5']:
                 add(case, 'synthetic', arm, mode='spatial')
-        if 9 in figures and .3 <= p <= .9:
+        if 9 in figures and .1 <= p <= .9:
             for seed in SEEDS: add(case, 'synthetic', 'Full', seed)
             for arm in ['Rule', *[f'FS{i}' for i in range(1, 10)]]:
                 add(case, 'synthetic', arm)
@@ -91,6 +103,9 @@ def model(task):
     arm, seed, lanes = task['arm'], task['training_seed'], task['lanes']
     if arm in ['Rule', *[f'FS{i}' for i in range(1, 10)]]:
         algorithm, directory = arm, None
+    elif arm in ['SAC', 'DQN']:
+        algorithm = arm.lower()
+        directory = PROJECT / f'models/synthetic/{arm}/{arm}_seed{seed}'
     elif arm in ARMS:
         algorithm = 'ppo'
         directory = PROJECT / f'models/synthetic/{arm}/PPO_seed{seed}'
@@ -148,7 +163,8 @@ def run(project, output, figures, workers=4, limit=None, resume=False):
             actual = hashlib.sha256((project / record['path'] / name).read_bytes()).hexdigest()
             if actual != expected: raise ValueError(f'Model fingerprint mismatch: {record["path"]}/{name}')
     payload['code_sha256'] = {str(path.relative_to(project)): hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in sorted((project / 'src').rglob('*.py'))}
+        for path in sorted(project.rglob('*.py'))
+        if not any(part in {'build', '.git', '__pycache__', '.venv', 'dist'} for part in path.relative_to(project).parts)}
     if 5 in figures:
         payload['figure05'] = json.loads((project / 'examples/figure05/config.json').read_text())
         payload['code_sha256'].update({str(path.relative_to(project)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -165,7 +181,7 @@ def run(project, output, figures, workers=4, limit=None, resume=False):
             code_sha256=payload['code_sha256']), indent=2), encoding='utf-8')
         rows = [{**task['case'], **{key: value for key, value in task.items() if key not in ['case', 'case_id']},
                  'case_id': task['case_id']} for task in tasks]
-        export_table(pd.DataFrame(rows), output / 'plan.csv', omit=('scenario_sha256',))
+        pd.DataFrame(rows).to_csv(output / 'plan.csv', index=False)
     seen = set()
     for series in sorted({task['series'] for task in tasks}):
         path = output / series / 'raw.csv'
@@ -184,7 +200,10 @@ def run(project, output, figures, workers=4, limit=None, resume=False):
             folder = output / row['series']
             folder.mkdir(parents=True, exist_ok=True)
             path = folder / 'raw.csv'
-            append_record(row, path, omit=('scenario_sha256',))
+            with path.open('a', newline='', encoding='utf-8') as stream:
+                writer = csv.DictWriter(stream, fieldnames=COLUMNS)
+                if stream.tell() == 0: writer.writeheader()
+                writer.writerow(row)
             completed += 1
             failures += int(row['physical_failure'])
             (output / 'progress.json').write_text(json.dumps(dict(completed=completed,

@@ -1,0 +1,20 @@
+{
+  "202610150": {
+    "checkpoint": 1001472,
+    "tts_gate_passed": false,
+    "validation_reward": 6.962640505625314,
+    "validation_tts": 82155.54762384959
+  },
+  "202610151": {
+    "checkpoint": 1013760,
+    "tts_gate_passed": true,
+    "validation_reward": 8.212811243601502,
+    "validation_tts": 76840.1250910912
+  },
+  "202610152": {
+    "checkpoint": 1067008,
+    "tts_gate_passed": true,
+    "validation_reward": 8.226573901640522,
+    "validation_tts": 77597.23795716648
+  }
+}

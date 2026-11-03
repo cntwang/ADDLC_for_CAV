@@ -1,0 +1,11 @@
+{
+  "traffic_seed": 770000000,
+  "p": 0.4,
+  "main_mode": "D4_random_steps",
+  "ramp_mode": "D4_random_steps",
+  "composition": "block_random15",
+  "training_seed": 202610152,
+  "physics": "same linear-headway CTM as main experiments",
+  "composition_block_minutes": 60,
+  "composition_stream": 2
+}

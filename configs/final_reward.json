@@ -1,0 +1,16 @@
+{
+  "components": [
+    "density",
+    "capacity",
+    "safety",
+    "time",
+    "early"
+  ],
+  "timeout": false,
+  "weights": "unchanged original implementation",
+  "training_seeds": [
+    202610150,
+    202610151,
+    202610152
+  ]
+}

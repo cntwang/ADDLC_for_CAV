@@ -1,0 +1,46 @@
+{
+  "config": {
+    "traffic_seed": 770000000,
+    "p": 0.4,
+    "main_mode": "D4_random_steps",
+    "ramp_mode": "D4_random_steps",
+    "composition": "block_random15",
+    "training_seed": 202610152,
+    "physics": "same linear-headway CTM as main experiments",
+    "composition_block_minutes": 60,
+    "composition_stream": 2
+  },
+  "scenario_sha256": "e0028a34775223032335eeb3f614cff37ade15b6f9282f11f5b0f405c826b894",
+  "source_sha256": {
+    "examples/figure05/config.json": "6154bf8028b42e295e77197f5a4b1ded1ad9c32c52f067e0059544dc4dac68aa",
+    "examples/figure05/generate.py": "1b92e969fef3e297d9c9c2c2fb5b873660fd8ed7afce1f5b7f0d1eec16a1025d",
+    "data/illustration.py": "b998d0528dff037cba0f56874d0060b4a3f5fcc1006ff3f555366afddd71d32e",
+    "plots/timeseries.py": "182442e4b0789f9c7ba7ac6d76a600aa1436a1da896bd80eaf065e356f36a148",
+    "models/synthetic/Full/PPO_seed202610152/model_final.zip": "90028212317cc70c806d773e04830af166e7bfc283ffb7da2e2512a4774b6c8b",
+    "models/synthetic/Full/PPO_seed202610152/normalizer_final.pkl": "6687ef577db0f48ab2774845441270b3ec174e404118d41fc5189c7d85503666",
+    "envs/_legacy/kernel.py": "42022c43ef0b61a384a026d3df28d56a0dc8492fe75bbd2fb3f014cbaf11c129",
+    "envs/kernels/lane3.py": "2b9f0b029cc5dc4c98243867f681be44a20b3ceafd0f0f279d3061cc8252756d",
+    "envs/reward.py": "275ff727effeba2293710971f4cadb3c86caf480e702479e48ec55154bf3794f"
+  },
+  "csv_sha256": {
+    "fig05.csv": "48bfba67b3e08f5dbdeb684a2b30c11ee00dbcbd74671f7bb521f546a9448971",
+    "fig05_input.csv": "2e2383da2e3e211898bbd7505e9eae2a78dfe4b87fe9a0cfc56986982b84034f",
+    "fig05_lanes.csv": "f94f675d161e9146fa5b72a168257d33ec3735994ccf0b708e371a30b7b672c4"
+  },
+  "same_code_replay_matched": true,
+  "metrics": {
+    "Full": {
+      "J_fixed_control": 8.810068198548006,
+      "complete_tts": 472896.32817417535,
+      "fixed_departures": 55172.68411937495
+    },
+    "FS1": {
+      "J_fixed_control": 0.3115498609272153,
+      "complete_tts": 556285.4080382985,
+      "fixed_departures": 49805.1781440618
+    }
+  },
+  "scenario_type": "illustrative correlated-composition stress case; not a population-wide result",
+  "quota_verified": true,
+  "additional_tests": "docs/figure05_block_tests.csv"
+}

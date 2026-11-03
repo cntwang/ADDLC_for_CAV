@@ -1,0 +1,58 @@
+% Requires \usepackage{booktabs} and the manuscript's \add command.
+\begin{table}[!ht]
+\centering
+\caption{Simulation and reward parameters}
+\label{table:experiment_setting}
+\small
+\begin{tabular}{llrl}
+\toprule
+Symbol & Definition & Value & Unit \\
+\midrule
+\multicolumn{4}{l}{\textit{Road and traffic model}} \\
+$J$ & Lanes per cell & 3 & -- \\
+$I$ & Number of cells & 120 & -- \\
+$I'$ & On-ramp cell index & 60 & -- \\
+$I_{\mathrm{s}}$ & Cells per segment & 20 & -- \\
+$\Delta x$ & Cell length & $1/3$ & km \\
+$v_{\mathrm{f}}$ & Free-flow speed & 80 & km/h \\
+$\omega'$ & Maximum capacity reduction & 0.3 & -- \\
+\midrule
+\multicolumn{4}{l}{\textit{Simulation and control}} \\
+$\Delta t$ & Simulation time step & 15 & s \\
+$T$ & \add{Storage and time-penalty horizon} & \add{5000} & \add{CTM steps} \\
+$T_2$ & CTM steps per control decision & 60 & CTM steps \\
+$T_{\mathrm{protracted}}$ & Episode timeout threshold & 3920 & CTM steps \\
+$N_{\mathrm{target}}$ & Target cumulative outflow & 65000 & veh \\
+\midrule
+\multicolumn{4}{l}{\textit{Reward parameters}} \\
+$i_{\mathrm{incentive}}$ & Density incentive interval & \add{2.0} & veh/km/lane \\
+$\kappa_0$ & Base time penalty & 0.05 & -- \\
+$\beta$ & Time-penalty growth weight & 13 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Simulation parameter settings for the PeMS-driven scenarios}
+\label{tab:pems_parameters}
+\small
+\begin{tabular}{llrl}
+\toprule
+Symbol & Definition & Value & Unit \\
+\midrule
+$T$ & \add{Storage and time-penalty horizon} & \add{5000} & \add{CTM steps} \\
+$T_{\mathrm{start}}$ & Start clock time of demand & 3 & h \\
+$T_3$ & Duration of demand input & \add{10.5} & h \\
+$\beta$ & Time-penalty growth weight & \add{13} & -- \\
+$T_{\mathrm{protracted}}$ & Episode timeout threshold & \add{3920} & CTM steps \\
+$N_{\mathrm{target}}$ & Target cumulative outflow & \add{65000} & veh \\
+$F$ & \add{Main training budget per seed} & \add{$10^6$} & \add{RL decisions} \\
+-- & \add{Three-lane boundary-flow scale} & \add{0.6} & -- \\
+-- & \add{Four-lane boundary-flow scale} & \add{0.8} & -- \\
+-- & \add{Five-lane boundary-flow scale} & \add{1.0} & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\add{Here, $T$ specifies the native storage and time-penalty horizon rather than a requirement that every episode runs for exactly $T$ CTM steps. Physical-performance evaluation continues until the road and both entry queues clear, subject to a safety cap of 28,800 CTM steps. The one-million-decision budget applies to the main training runs; the later four-lane retraining and refinement budgets are reported separately.}

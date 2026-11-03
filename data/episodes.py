@@ -10,14 +10,14 @@ class Episodes(gym.Wrapper):
     def __init__(self, env, seed, demand=None):
         super().__init__(env)
         self.base = 700000000 + 2000000 * (seed - 202610150)
-        if self.base < 0:
+        if not 0 <= self.base < 2**32:
             
             self.base = int(np.random.SeedSequence([seed, 1915]).generate_state(1)[0]) % 2000000000
         self.counter = 0
         self.demand = demand
 
     def reset(self, *, seed=None, options=None):
-        case = self.base + self.counter
+        case = (self.base + self.counter) % (2**32)
         self.counter += 1
         rng = np.random.default_rng(np.random.SeedSequence([case, 1915]))
         p = float(rng.uniform())

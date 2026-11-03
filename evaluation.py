@@ -1,4 +1,4 @@
-
+"""Native rewards and full-demand physical evaluation; all outputs are CSV."""
 
 import argparse
 import json
@@ -114,7 +114,7 @@ def clearance_episode(data, policy, lanes=3, max_dl=None, trajectory=None, compl
     result.update(physical_metrics(z, lanes, qm, qr,
                                    env.actual_input[:t] + env.ramp_input_actual_ts[:t]))
     if trajectory is not None:
-        
+        # Cellwise values exported here, not calculated inside the plotter.
         period = z[120:cutoff:4]
         time, cell = np.indices(period.shape[:2])
         stock = period[:, :, k.N]
@@ -179,7 +179,7 @@ def main():
                    scenario_sha256=data["sha256"], native_episode_reward=native["J_episode"],
                    native_reason=native["reason"], **metrics)
         rows.append(row)
-        export_table(pd.DataFrame(rows), output / "raw.csv", omit=("scenario_sha256",))
+        export_table(pd.DataFrame(rows), output / "raw.csv")
         print(f"{folder.name}: TTS={metrics['complete_tts']:.6f}", flush=True)
     (output / "complete.json").write_text(json.dumps(dict(cases=len(rows), passed=True)))
 

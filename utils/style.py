@@ -1,4 +1,4 @@
-
+"""Consistent typography and tight figure exports."""
 
 from pathlib import Path
 
@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 FORMATS = ("pdf",)
 
 def configure(extension="pdf"):
-    
+    """Keep plot captions in LaTeX and choose the requested output format."""
     global FORMATS
     FORMATS = ("pdf", "png", "svg") if extension == "all" else (extension,)
     plt.rcParams.update({
@@ -21,6 +21,7 @@ def configure(extension="pdf"):
         "xtick.labelsize": 18,
         "ytick.labelsize": 18,
         "pdf.fonttype": 42,
+        "mathtext.fontset": "stix",
         "svg.fonttype": "none",
         "axes.spines.top": False,
         "axes.spines.right": False,

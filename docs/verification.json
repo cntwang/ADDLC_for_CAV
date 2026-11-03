@@ -1,0 +1,122 @@
+{
+  "tables": [
+    {
+      "file": "fig02.csv",
+      "rows": 15120,
+      "match": true
+    },
+    {
+      "file": "fig03.csv",
+      "rows": 3000,
+      "match": true
+    },
+    {
+      "file": "algorithm_summary.csv",
+      "rows": 3,
+      "match": true
+    },
+    {
+      "file": "fig04_training.csv",
+      "rows": 300,
+      "match": true
+    },
+    {
+      "file": "fig04_test.csv",
+      "rows": 36,
+      "match": true
+    },
+    {
+      "file": "fig05.csv",
+      "rows": 42,
+      "match": true
+    },
+    {
+      "file": "fig05_input.csv",
+      "rows": 2520,
+      "match": true
+    },
+    {
+      "file": "fig05_lanes.csv",
+      "rows": 10080,
+      "match": true
+    },
+    {
+      "file": "fig06.csv",
+      "rows": 22680,
+      "match": true
+    },
+    {
+      "file": "fig07.csv",
+      "rows": 378,
+      "match": true
+    },
+    {
+      "file": "fig08.csv",
+      "rows": 63,
+      "match": true
+    },
+    {
+      "file": "fig09.csv",
+      "rows": 77,
+      "match": true
+    },
+    {
+      "file": "fig10.csv",
+      "rows": 54,
+      "match": true
+    },
+    {
+      "file": "fig11.csv",
+      "rows": 8064,
+      "match": true
+    },
+    {
+      "file": "fig12_training.csv",
+      "rows": 500,
+      "match": true
+    },
+    {
+      "file": "fig12_penetration.csv",
+      "rows": 18,
+      "match": true
+    },
+    {
+      "file": "fig12_dates.csv",
+      "rows": 42,
+      "match": true
+    },
+    {
+      "file": "fig13.csv",
+      "rows": 1200,
+      "match": true
+    },
+    {
+      "file": "fig13_lanes.csv",
+      "rows": 160,
+      "match": true
+    },
+    {
+      "file": "fig13_difference.csv",
+      "rows": 600,
+      "match": true
+    },
+    {
+      "file": "fig14.csv",
+      "rows": 144000,
+      "match": true
+    },
+    {
+      "file": "fig15.csv",
+      "rows": 6,
+      "match": true
+    }
+  ],
+  "unit_tests": 17,
+  "model_hashes": 66,
+  "scenario_hashes": 911,
+  "plots": 51,
+  "algorithm_replays": [
+    "SAC",
+    "DQN"
+  ]
+}

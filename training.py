@@ -1,4 +1,4 @@
-
+"""Train PPO, DQN or categorical SAC; write logs, never draw figures."""
 
 import argparse
 import csv
@@ -57,7 +57,6 @@ def train(algorithm, lanes, seed, steps, output, config=None, pems=None,
             self.count += 1
             row = dict(steps=step, episode=self.count, **info["ablation_episode"])
             row["common_reward"] = row["J_episode"]
-            row.pop("scenario_sha256", None)
             if self.stream is None:
                 self.stream = (output / "episodes.csv").open("w", newline="", encoding="utf-8")
                 self.writer = csv.DictWriter(self.stream, fieldnames=list(row))
@@ -68,7 +67,7 @@ def train(algorithm, lanes, seed, steps, output, config=None, pems=None,
         def _on_step(self):
             for info in self.locals["infos"]:
                 self.write(self.num_timesteps, info)
-            return True
+            return self.num_timesteps < steps
 
     recorder = EpisodeLog()
     if algorithm == "sac":

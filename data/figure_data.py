@@ -21,7 +21,7 @@ class Builder:
         path = Path(path).resolve()
         key = str(path.relative_to(self.project)) if path.is_relative_to(self.project) else str(path)
         self.sources[key] = hashlib.sha256(path.read_bytes()).hexdigest()
-        return pd.read_csv(path)
+        return pd.read_csv(path, low_memory=False)
 
     def raw(self, series):
         q = self.read(self.records / series / 'raw.csv')
@@ -74,6 +74,15 @@ class Builder:
                 rows.append(pd.DataFrame(dict(algorithm=algorithm, metric=metric,
                     steps=(np.arange(500) + .5) * 2000, mean=mean, seed_sd=sd, raw_mean=mean)))
         self.write(pd.concat(rows, ignore_index=True), 'fig03.csv')
+        if (self.records / 'algorithms/raw.csv').exists():
+            full = self.raw('synthetic')
+            full = full[full.arm.eq('Full') & full.compliance.eq(1)].copy()
+            full['arm'] = 'PPO'
+            paired = pd.concat([full, self.raw('algorithms')], ignore_index=True)
+            fields = ['J_fixed_control', 'complete_tts', 'mean_entry_wait_h',
+                      'fixed_departures', 'executed_lane_switches']
+            summary = paired.groupby(['case_id', 'arm'])[fields].mean().groupby('arm').mean().reset_index()
+            self.write(summary, 'algorithm_summary.csv')
 
     def figure04(self):
         curves = []
@@ -107,7 +116,7 @@ class Builder:
 
     def figure06(self):
         q = self.details('synthetic', 'cells')
-        q = q[q.p.between(.4, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
+        q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         out = q.groupby(['p', 'arm', 'kind', 'cell'])[['distance_km', 'vehicle_hours']].sum().reset_index()
         out['speed_kmh'] = np.divide(out.distance_km, out.vehicle_hours,
             out=np.full(len(out), np.nan), where=out.vehicle_hours > 1e-10)
@@ -115,13 +124,13 @@ class Builder:
 
     def figure07(self):
         q = self.details('synthetic', 'units')
-        q = q[q.p.between(.4, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
+        q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         out = q.groupby(['p', 'arm', 'unit'])[['density', 'speed']].mean().reset_index()
         self.write(out, 'fig07.csv')
 
     def figure08(self):
         q = self.raw('synthetic')
-        q = q[q.p.between(.4, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
+        q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         fields = ['density_std_units', 'critical_density_RMSE']
         if q[fields].isna().any().any(): raise ValueError('Missing unit-level density records')
         self.write(q.groupby(['p', 'arm'])[fields].mean().reset_index(), 'fig08.csv')
@@ -140,6 +149,7 @@ class Builder:
 
     def figure10(self):
         q = pd.concat([self.raw('synthetic'), self.raw('compliance')], ignore_index=True)
+        q = q[q.p.between(.1, .9)]
         q = q[q.arm.isin(['Full', 'Rule', 'FS1'])]
         rows = []
         for (p, compliance), group in q.groupby(['p', 'compliance']):
@@ -208,15 +218,35 @@ class Builder:
         self.write(q[['arm', 'time_h', 'cell', 'density', 'flow', 'speed']], 'fig14.csv')
 
     def figure15(self):
-        q = pd.concat([self.raw('lane4'), self.raw('lane5')], ignore_index=True)
+        frames = []
         fields = ['native_episode_reward', 'complete_tts', 'mean_entry_wait_h', 'fixed_departures']
+        for width in [4, 5]:
+            raw = self.raw(f'lane{width}')
+            cases = self.read(self.project / f'configs/test_cases_{width}lane.csv')
+            expected = cases.set_index('case_id').scenario_sha256
+            if not set(raw.case_id).issubset(expected.index):
+                raise ValueError(f'Figure 15: unmatched {width}-lane case IDs')
+            hashes = raw.case_id.map(expected)
+            if not raw.scenario_sha256.eq(hashes).all():
+                raise ValueError(f'Figure 15: {width}-lane demand fingerprint mismatch')
+            if not raw.lanes.eq(width).all() or raw[fields].isna().any().any():
+                raise ValueError(f'Figure 15: invalid {width}-lane metrics')
+            for _, group in raw.groupby('case_id'):
+                if set(group.arm) != {'Transfer', 'Retrained', 'FS1'}:
+                    raise ValueError('Figure 15: incomplete controller comparison')
+                for arm in ['Transfer', 'Retrained']:
+                    if sorted(group[group.arm.eq(arm)].training_seed) != SEEDS:
+                        raise ValueError('Figure 15: unmatched training seeds')
+                if len(group[group.arm.eq('FS1')]) != 1:
+                    raise ValueError('Figure 15: duplicate FS1 baseline')
+            frames.append(raw)
+        q = pd.concat(frames, ignore_index=True)
         q = q.groupby(['case_id', 'lanes', 'arm'])[fields].mean().groupby(['lanes', 'arm']).mean().reset_index()
         self.write(q, 'fig15.csv')
 
-    def build(self, figures, metadata=False):
+    def build(self, figures):
         for figure in sorted(figures):
             getattr(self, f'figure{figure:02d}')()
         manifest = dict(figures=sorted(figures), sources_sha256=self.sources, tables=self.tables)
-        if metadata:
-            (self.output / 'generated_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+        (self.output / 'generated_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
         return manifest

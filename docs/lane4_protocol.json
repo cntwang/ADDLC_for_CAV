@@ -1,0 +1,60 @@
+{
+  "name": "lane4_scale08_corrected_20261103",
+  "lanes": 4,
+  "actual_boundary_scale": 0.8,
+  "composition": "original quota15; composition_scale=1.0; initial stock unchanged",
+  "p_train": "Uniform(0,1)",
+  "seeds": [
+    202610150,
+    202610151,
+    202610152
+  ],
+  "steps_per_seed": 1000000,
+  "initialization": "fresh PPO; no rule hybrid or extra policy information",
+  "vector_envs": 4,
+  "steps_per_env": 512,
+  "total_rollout": 2048,
+  "optimization": "original PPO settings; only rollout collection parallelized",
+  "training_dates": [
+    "2025-09-24",
+    "2025-09-25",
+    "2025-09-26",
+    "2025-10-01",
+    "2025-10-02",
+    "2025-10-03"
+  ],
+  "validation_dates": [
+    "2025-09-27",
+    "2025-09-28",
+    "2025-10-04",
+    "2025-10-05"
+  ],
+  "test_dates": [
+    "2025-09-29",
+    "2025-09-30",
+    "2025-10-06",
+    "2025-10-07"
+  ],
+  "validation_cases": 72,
+  "test_cases": 100,
+  "checkpoint_decisions": [
+    250000,
+    500000,
+    750000,
+    1000000
+  ],
+  "selection": "For each seed: maximum mean native five-term validation reward among checkpoints whose complete validation TTS is no higher than the three-seed frozen transfer mean; if none qualifies use highest reward and report gate failure. No test outcomes used for selection.",
+  "reward": "unchanged five terms and weights; no timeout penalty",
+  "termination": "original native termination retained in training/native reward; complete TTS includes both entry queues until clearance",
+  "test_cohort": "same previously saved outcome-selected demonstration cases; no reselection; inference limited to this cohort",
+  "five_lane": "unchanged original frozen models and saved results; scale1.0",
+  "source_sha256": "7487b3f0ec0199bc095daabf083712fe538f159a8e096d92634bce58531f2cb8",
+  "physics_sha256": {
+    "src\\cav_dl\\envs\\kernels\\lane4.py": "4bccfc0dba84b41f42e49d5b0636d5af4cce11d4ea324fc04b78fdfdd074c653",
+    "src\\cav_dl\\envs\\reward.py": "275ff727effeba2293710971f4cadb3c86caf480e702479e48ec55154bf3794f"
+  },
+  "cases_sha256": {
+    "validation": "722ea7d357d3fde53f12338b3e31f3f2ccf80a3abde14803e300a8bf1033621d",
+    "test": "8cba9fd720852ddbf5f042a49391e61f32d77d0d5d741abf0c46c7d0d9d1b115"
+  }
+}

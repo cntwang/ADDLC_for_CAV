@@ -1,0 +1,40 @@
+{
+  "source_selection": {
+    "202610150": {
+      "checkpoint": 1001472,
+      "tts_gate_passed": false,
+      "validation_reward": 6.962640505625314,
+      "validation_tts": 82155.54762384959
+    },
+    "202610151": {
+      "checkpoint": 751616,
+      "tts_gate_passed": true,
+      "validation_reward": 8.172450346290852,
+      "validation_tts": 77063.54371882373
+    },
+    "202610152": {
+      "checkpoint": 1001472,
+      "tts_gate_passed": false,
+      "validation_reward": 7.784557055775526,
+      "validation_tts": 79963.43082263507
+    }
+  },
+  "extra_decisions_per_seed": 262144,
+  "learning_rate": 5e-05,
+  "entropy_start": 0.001,
+  "entropy_end": 0.0001,
+  "entropy_warmup": 20000,
+  "vector_envs": 4,
+  "rollout": 2048,
+  "checkpoint_local_steps": [
+    65536,
+    131072,
+    262144
+  ],
+  "initialization": "same-seed stage1 validation-selected checkpoint",
+  "training_demand": "same exact0.8, same train dates; disjoint new traffic seeds",
+  "training_reward": "unchanged native five-term reward; no TTS reward",
+  "selection": "same validation reward / TTS gate as stage1; all seeds retained",
+  "test_access": false,
+  "source_sha256": "dd456ccdab1c6f78f8cce7478b74d7c509a5ef260914a950bac5d153be3cdd90"
+}

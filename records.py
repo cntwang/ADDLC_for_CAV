@@ -2,7 +2,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from cav_dl.envs._legacy import kernel as k
-from cav_dl.utils.io import export_table
 
 
 def critical(p):
@@ -54,7 +53,7 @@ class Recorder:
         metadata = {('road_lanes' if key == 'lanes' else key): value
                     for key, value in self.metadata.items()}
         frame = frame.assign(**metadata)
-        export_table(frame, self.folder / f'{self.stem}_{name}.csv', omit=('scenario_sha256',))
+        frame.to_csv(self.folder / f'{self.stem}_{name}.csv', index=False)
 
     def __call__(self, env, data):
         history = env._history[:env.t]

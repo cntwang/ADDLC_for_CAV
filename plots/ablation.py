@@ -32,7 +32,7 @@ def learning(data, output):
         ax.plot(t.steps/1e6, mean, color=color, label=arm)
         ax.fill_between(t.steps/1e6, mean-sd, mean+sd, color=color, alpha=.12)
     ax.set(ylim=(-40, 20), yticks=[-40, -20, 0, 20],
-           xlabel=r"Training steps ($\times10^6$)",
+           xlabel=r"RL control decisions ($\times10^6$)",
            ylabel="Common full-five episode reward")
     ax.legend(fontsize=13)
     save(fig, output, "reward_ablation_a")

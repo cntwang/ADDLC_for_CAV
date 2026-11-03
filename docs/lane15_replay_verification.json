@@ -1,0 +1,30 @@
+[
+  {
+    "lanes": 4,
+    "case_id": 823,
+    "native_episode_reward": 10.824821729884027,
+    "native_episode_reward_match": true,
+    "J_fixed_control": 10.27850703170015,
+    "J_fixed_control_match": true,
+    "complete_tts": 59313.25494740397,
+    "complete_tts_match": true,
+    "mean_entry_wait_h": 0.2964251131084875,
+    "mean_entry_wait_h_match": true,
+    "fixed_departures": 68049.39609142863,
+    "fixed_departures_match": true
+  },
+  {
+    "lanes": 5,
+    "case_id": 967,
+    "native_episode_reward": 7.453341885124871,
+    "native_episode_reward_match": true,
+    "J_fixed_control": 6.670068724978816,
+    "J_fixed_control_match": true,
+    "complete_tts": 91568.08064467867,
+    "complete_tts_match": true,
+    "mean_entry_wait_h": 0.2578871316355748,
+    "mean_entry_wait_h_match": true,
+    "fixed_departures": 81170.9827633881,
+    "fixed_departures_match": true
+  }
+]

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "cav-dl"
+version = "0.3.0"
+description = "CTM environments, reinforcement learning and CSV-only publication plots"
+requires-python = ">=3.11"
+dependencies = ["numpy", "pandas", "matplotlib"]
+[project.optional-dependencies]
+rl = ["numba", "gymnasium", "torch", "stable-baselines3", "scipy"]
+[project.scripts]
+cav-dl-plot = "cav_dl.cli:main"
+cav-dl-export = "cav_dl.export:main"
+cav-dl-train = "cav_dl.training:main"
+cav-dl-test = "cav_dl.evaluation:main"
+cav-dl-data = "cav_dl.experiments:main"
+cav-dl-cases = "cav_dl.data.cases:main"
+cav-dl-summary = "cav_dl.data.summaries:main"
+[tool.setuptools.package-data]
+cav_dl = ["defaults.json"]
+[tool.setuptools]
+packages = ["cav_dl", "cav_dl.agents", "cav_dl.data", "cav_dl.envs", "cav_dl.envs._legacy", "cav_dl.envs._legacy.original", "cav_dl.envs._legacy.original.environment", "cav_dl.envs._legacy.original.environment.flow_models", "cav_dl.envs.kernels", "cav_dl.plots", "cav_dl.utils"]
+package-dir = {"cav_dl" = "."}
+[tool.ruff]
+line-length = 100
