@@ -1,0 +1,235 @@
+{
+  "source": "user-downloaded official Caltrans PeMS Station 5-Minute archives",
+  "timezone": "America/Los_Angeles (local wall time; no DST transition in selected period)",
+  "requested_dates": [
+    "2025-09-24",
+    "2025-10-07"
+  ],
+  "station_ids": [
+    717772,
+    716699
+  ],
+  "source_files": [
+    {
+      "file": "d07_text_station_5min_2025_09_24.txt",
+      "bytes": 176949895,
+      "sha256": "5521da11599b115dda2c2989ae52c3d536afb9a7aeed7fc6a154fb2ed8c92744",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_25.txt",
+      "bytes": 177463047,
+      "sha256": "057a1e90a3e67908f81676f04052a4e65d6fc22d7db482d344b6ae5fd5e93e05",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_26.txt",
+      "bytes": 177620607,
+      "sha256": "bffae4b60054800c8729632059964892314eefc5025291cd7e73958ff13761a1",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_27.txt",
+      "bytes": 177395864,
+      "sha256": "f7241c970bd7d7d9442955010a1c837f6410b2fb223e56ef23f49ee6b8517533",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_28.txt",
+      "bytes": 177258064,
+      "sha256": "05062712d0a2df17610af52986b6fc86a677859a09ea25b27ce8f7ea6d33e8f3",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_29.txt",
+      "bytes": 177508593,
+      "sha256": "1aca5c5766b99f83bcee638f765b5e70fb6bad2242c51aba2ab960ac9bb5aa36",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_09_30.txt",
+      "bytes": 177417156,
+      "sha256": "9f3e0604f38709769cd80451702e2948ebe6816c99d537480ee6476a035045df",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_01.txt",
+      "bytes": 177483806,
+      "sha256": "8152983016e64c349918b0ccbaa428a9c47721762f85e88e6f26597684e840af",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_02.txt",
+      "bytes": 177590636,
+      "sha256": "d8e54075864a0ca2c947f740c0375743907ffd2e8654be0a1dd283461110b56b",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_03.txt",
+      "bytes": 177769319,
+      "sha256": "5bcd77d3a3b00fdc24d2097d552c1e32765031ff97f6c128c21131bd8acc6ffc",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_04.txt",
+      "bytes": 177433855,
+      "sha256": "04c98a06a6a9c8440a3203d3f40fed214faa3963e6891430257e14f4be225cd1",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_05.txt",
+      "bytes": 177169332,
+      "sha256": "ed86ab0dd18b6b4357398dad011cb8e7f400e871df04a02bf247934885947c90",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_06.txt",
+      "bytes": 177437530,
+      "sha256": "9804c66283a5e7741f71a77a397a6e4458cdf1949cb8e88620098c82d4f37428",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    },
+    {
+      "file": "d07_text_station_5min_2025_10_07.txt",
+      "bytes": 177407991,
+      "sha256": "8b61d8879ca79245062611c8481b81d11a801db50e2172229f0d2d5c979aae2a",
+      "rows": {
+        "717772": 288,
+        "716699": 288
+      }
+    }
+  ],
+  "metadata_file": "d07_text_meta_2023_12_22.txt",
+  "metadata_sha256": "4bdfd9e064a46688848dd7a923bf750a67c251120eec45d6c1036c2ba22536f0",
+  "metadata_note": "2023 metadata snapshot; 2025 archive route/direction/type checked independently; lane counts require this age caveat",
+  "raw_unit": "Flow=vehicles per 5 minutes; station total, not added again to lane flows",
+  "plotting_conversion": "veh/h=Flow*12",
+  "simulation_conversion": "veh/15s=Flow/20, zero-order hold inside each 5-minute bin",
+  "missing_source_dates": [],
+  "complete_paired_days": [
+    "2025-09-24",
+    "2025-09-25",
+    "2025-09-26",
+    "2025-09-27",
+    "2025-09-28",
+    "2025-09-29",
+    "2025-09-30",
+    "2025-10-01",
+    "2025-10-02",
+    "2025-10-03",
+    "2025-10-04",
+    "2025-10-05",
+    "2025-10-06",
+    "2025-10-07"
+  ],
+  "date_splits": {
+    "train": [
+      "2025-09-24",
+      "2025-09-25",
+      "2025-09-26",
+      "2025-10-01",
+      "2025-10-02",
+      "2025-10-03"
+    ],
+    "validation": [
+      "2025-09-27",
+      "2025-09-28",
+      "2025-10-04",
+      "2025-10-05"
+    ],
+    "test": [
+      "2025-09-29",
+      "2025-09-30",
+      "2025-10-06",
+      "2025-10-07"
+    ]
+  },
+  "date_split_method": "mainline-profile-grouped holdout; latest two distinct mainline groups test, preceding two validation; no identical mainline vector crosses splits",
+  "mainline_profile_groups": {
+    "2d9a1f675219c3ec07580812ffa9edcbd4e231bb2de21435cf3784d2792a18c8": [
+      "2025-09-24",
+      "2025-10-01"
+    ],
+    "0e482a655ac39adfeb64ad3124f97b73ee028c61fc7c7bdd38d2a2a6032f8c98": [
+      "2025-09-25",
+      "2025-10-02"
+    ],
+    "9c6f2e924a2c13c468731112cb71786f3e0b6815e66f6e20bc55c191abbd8ae0": [
+      "2025-09-26",
+      "2025-10-03"
+    ],
+    "23fe33227d153d98cc04056e7ab63b72744df932f1067b6ea67119efa840b9f2": [
+      "2025-09-27",
+      "2025-10-04"
+    ],
+    "766a7fdb4bbc0ff3ef9d8a2bb3f527cac91036c2375a8bed483e5089c567b7bb": [
+      "2025-09-28",
+      "2025-10-05"
+    ],
+    "d2fb285b547fdfeff3d1db1dd033f8498af7bc74b3b1cf667d00334d7c8c8098": [
+      "2025-09-29",
+      "2025-10-06"
+    ],
+    "f5788925010722fd0892c82a4c03f3557d50b9c91f21c8f3310d3f6f67db1369": [
+      "2025-09-30",
+      "2025-10-07"
+    ]
+  },
+  "day_mainline_group": {
+    "2025-09-24": "2d9a1f675219c3ec07580812ffa9edcbd4e231bb2de21435cf3784d2792a18c8",
+    "2025-09-25": "0e482a655ac39adfeb64ad3124f97b73ee028c61fc7c7bdd38d2a2a6032f8c98",
+    "2025-09-26": "9c6f2e924a2c13c468731112cb71786f3e0b6815e66f6e20bc55c191abbd8ae0",
+    "2025-09-27": "23fe33227d153d98cc04056e7ab63b72744df932f1067b6ea67119efa840b9f2",
+    "2025-09-28": "766a7fdb4bbc0ff3ef9d8a2bb3f527cac91036c2375a8bed483e5089c567b7bb",
+    "2025-09-29": "d2fb285b547fdfeff3d1db1dd033f8498af7bc74b3b1cf667d00334d7c8c8098",
+    "2025-09-30": "f5788925010722fd0892c82a4c03f3557d50b9c91f21c8f3310d3f6f67db1369",
+    "2025-10-01": "2d9a1f675219c3ec07580812ffa9edcbd4e231bb2de21435cf3784d2792a18c8",
+    "2025-10-02": "0e482a655ac39adfeb64ad3124f97b73ee028c61fc7c7bdd38d2a2a6032f8c98",
+    "2025-10-03": "9c6f2e924a2c13c468731112cb71786f3e0b6815e66f6e20bc55c191abbd8ae0",
+    "2025-10-04": "23fe33227d153d98cc04056e7ab63b72744df932f1067b6ea67119efa840b9f2",
+    "2025-10-05": "766a7fdb4bbc0ff3ef9d8a2bb3f527cac91036c2375a8bed483e5089c567b7bb",
+    "2025-10-06": "d2fb285b547fdfeff3d1db1dd033f8498af7bc74b3b1cf667d00334d7c8c8098",
+    "2025-10-07": "f5788925010722fd0892c82a4c03f3557d50b9c91f21c8f3310d3f6f67db1369"
+  },
+  "missing_policy": "no missing date or invalid flow imputation; only complete paired days eligible",
+  "pems_quality_policy": "PeMS supplied estimated/imputed values retained with Observed flags; not described as exclusively directly observed counts",
+  "dataset_id": "1713a9947c425e72d0b2536780f1f4684485a492f3f707ec11ff24652e980f38"
+}
