@@ -4,12 +4,15 @@ from ._legacy import kernel as k
 from .native import LaneNative
 
 class ClearanceNative(LaneNative):
-    def __init__(self, lanes=3, max_dl=None):
+    def __init__(self, lanes=3, max_dl=None, max_steps=28800):
+        if max_steps < 60 or max_steps % 60:
+            raise ValueError('Clearance limit must be a positive multiple of 60 microsteps')
+        self._clearance_capacity = int(max_steps) + 2
         super().__init__(lanes, max_dl)
-        self.sim_time_step = 28801
-        self.actual_input = np.zeros(28801)
-        self.cav_input = np.zeros(28801)
-        self.ramp_input_actual_ts = np.zeros(28801)
+        self.sim_time_step = int(max_steps) + 1
+        self.actual_input = np.zeros(self.sim_time_step)
+        self.cav_input = np.zeros(self.sim_time_step)
+        self.ramp_input_actual_ts = np.zeros(self.sim_time_step)
         self.decisions = 0
 
     def reset(self, **kwargs):
@@ -20,9 +23,9 @@ class ClearanceNative(LaneNative):
 
     def _allocate_road(self):
         if not hasattr(self, '_history'):
-            self._history = np.zeros((28802, 120, len(k.FIELDS)))
+            self._history = np.zeros((self._clearance_capacity, 120, len(k.FIELDS)))
             self._last_written = 0
-            self._road_views = [SimpleNamespace(length=1/3, dt=15, lane_num=self.total_lanes, sim_time_step=28802,
+            self._road_views = [SimpleNamespace(length=1/3, dt=15, lane_num=self.total_lanes, sim_time_step=self._clearance_capacity,
                 **{name: self._history[:, i, j] for j, name in enumerate(k.FIELDS)}) for i in range(120)]
         else:
             self._history[:self._last_written].fill(0.)

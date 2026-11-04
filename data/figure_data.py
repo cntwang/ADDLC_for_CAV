@@ -1,11 +1,9 @@
-import hashlib
-import json
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from .profiles import MODES, hourly_profile
 
-SEEDS = [202610150, 202610151, 202610152]
+from cav_dl.utils.seeds import SEEDS, LANE_SEEDS
 ARMS = ['Full', 'NoDensity', 'NoCapacity', 'NoSafety', 'NoTime', 'NoEarlyPenalty']
 SPATIAL_ARMS = ['Full', 'Rule', 'FS1', 'FS2', 'FS3', 'FS4', 'FS5']
 
@@ -15,12 +13,10 @@ class Builder:
         self.project, self.records, self.output = map(Path, [project, records, output])
         self.training = Path(training) if training else self.records / 'training'
         self.output.mkdir(parents=True, exist_ok=True)
-        self.sources, self.tables = {}, []
+        self.tables = []
 
     def read(self, path):
         path = Path(path).resolve()
-        key = str(path.relative_to(self.project)) if path.is_relative_to(self.project) else str(path)
-        self.sources[key] = hashlib.sha256(path.read_bytes()).hexdigest()
         return pd.read_csv(path, low_memory=False)
 
     def raw(self, series):
@@ -39,8 +35,7 @@ class Builder:
     def write(self, frame, name):
         path = self.output / name
         frame.to_csv(path, index=False)
-        self.tables.append(dict(file=name, rows=len(frame), columns=list(frame.columns),
-                                sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+        self.tables.append(dict(file=name, rows=len(frame), columns=list(frame.columns)))
         print(f'{name}: {len(frame)} rows', flush=True)
 
     def curve(self, group, variant, size, ddof, clamp=False):
@@ -114,59 +109,65 @@ class Builder:
         for name in ['fig05.csv', 'fig05_input.csv', 'fig05_lanes.csv']:
             self.write(self.read(self.records / 'figure05' / name), name)
 
-    def figure06(self):
-        q = self.details('synthetic', 'cells')
+    def figure08(self):
+        q = self.details('spatial', 'cells')
         q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         out = q.groupby(['p', 'arm', 'kind', 'cell'])[['distance_km', 'vehicle_hours']].sum().reset_index()
         out['speed_kmh'] = np.divide(out.distance_km, out.vehicle_hours,
             out=np.full(len(out), np.nan), where=out.vehicle_hours > 1e-10)
-        self.write(out, 'fig06.csv')
+        self.write(out, 'fig08.csv')
 
-    def figure07(self):
-        q = self.details('synthetic', 'units')
+    def figure09(self):
+        q = self.details('spatial', 'units')
         q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         out = q.groupby(['p', 'arm', 'unit'])[['density', 'speed']].mean().reset_index()
-        self.write(out, 'fig07.csv')
+        self.write(out, 'fig09.csv')
 
-    def figure08(self):
-        q = self.raw('synthetic')
+    def figure10(self):
+        q = self.raw('spatial')
         q = q[q.p.between(.1, .9) & q.arm.isin(SPATIAL_ARMS) & q.compliance.eq(1)]
         fields = ['density_std_units', 'critical_density_RMSE']
         if q[fields].isna().any().any(): raise ValueError('Missing unit-level density records')
-        self.write(q.groupby(['p', 'arm'])[fields].mean().reset_index(), 'fig08.csv')
+        self.write(q.groupby(['p', 'arm'])[fields].mean().reset_index(), 'fig10.csv')
 
-    def figure09(self):
-        q = self.raw('synthetic')
+    def figure07(self):
+        q = self.raw('fuel')
         arms = ['Full', 'Rule', *[f'FS{i}' for i in range(1, 10)]]
-        q = q[q.p.between(.3, .9) & q.arm.isin(arms) & q.compliance.eq(1)]
+        q = q[q.p.between(0., 1.) & q.arm.isin(arms) & q.compliance.eq(1)]
         fields = ['source_road_fuel_kg', 'source_queue_fuel_kg', 'source_admission_fuel_kg',
                   'source_total_fuel_kg', 'total_vehicles', 'total_departures', 'vehicle_km', 'complete_tts']
         if q[fields].isna().any().any(): raise ValueError('Missing fuel records')
         cases = q.groupby(['p', 'case_id', 'arm'])[fields].mean()
         out = cases.groupby(['p', 'arm']).sum()
         out['n_cases'] = cases.groupby(['p', 'arm']).size()
-        self.write(out.reset_index(), 'fig09.csv')
+        if (out.total_vehicles <= 0).any():
+            raise ValueError('Mean fuel consumption requires positive vehicle counts')
+        out['mean_fuel_kg_per_vehicle'] = out.source_total_fuel_kg / out.total_vehicles
+        self.write(out.reset_index(), 'fig07.csv')
 
-    def figure10(self):
-        q = pd.concat([self.raw('synthetic'), self.raw('compliance')], ignore_index=True)
-        q = q[q.p.between(.1, .9)]
+    def figure06(self):
+        q = self.raw('compliance')
+        q = q[q.p.between(0., 1.)]
         q = q[q.arm.isin(['Full', 'Rule', 'FS1'])]
         rows = []
         for (p, compliance), group in q.groupby(['p', 'compliance']):
             m = group.groupby(['case_id', 'arm'])[['complete_tts', 'J_fixed_control']].mean().groupby('arm').mean()
-            row = dict(p=p, compliance=compliance)
+            v = group.groupby(['case_id', 'arm']).complete_tts.mean().unstack('arm')
+            row = dict(p=p, compliance=compliance, n_cases=len(v))
             for arm, label in [('Full', 'PPO'), ('Rule', 'Rule'), ('FS1', 'FS1')]:
                 row[label + '_TTS'] = m.loc[arm, 'complete_tts']
                 row[label + '_reward'] = m.loc[arm, 'J_fixed_control']
             row.update(PPO_vs_FS1_TTS_pct=100 * (1 - row['PPO_TTS'] / row['FS1_TTS']),
                        Rule_vs_FS1_TTS_pct=100 * (1 - row['Rule_TTS'] / row['FS1_TTS']),
                        PPO_vs_Rule_TTS_pct=100 * (1 - row['PPO_TTS'] / row['Rule_TTS']))
+            ids = np.random.default_rng(202611044).integers(0, len(v), (2000, len(v)))
+            draws = 100 * (1 - v.Full.to_numpy()[ids].sum(1) / v.FS1.to_numpy()[ids].sum(1))
+            row['PPO_vs_FS1_low95_pct'], row['PPO_vs_FS1_high95_pct'] = np.percentile(draws, [2.5, 97.5])
             rows.append(row)
-        self.write(pd.DataFrame(rows), 'fig10.csv')
+        self.write(pd.DataFrame(rows), 'fig06.csv')
 
     def figure11(self):
         path = self.project / 'assets/pems/daily_flows.npz'
-        self.sources[str(path.relative_to(self.project))] = hashlib.sha256(path.read_bytes()).hexdigest()
         rows = []
         with np.load(path, allow_pickle=False) as archive:
             for inlet, label in enumerate(['Mainline', 'On-ramp']):
@@ -203,7 +204,19 @@ class Builder:
                 for j, arm in enumerate(['PPO', 'FS1']):
                     lo, hi = np.quantile(boot[:, j], [.025, .975])
                     rows.append(dict(scope=scope, key=str(key), arm=arm, mean=a[:, j].mean(), lower95=lo, upper95=hi, n=len(a)))
-        self.write(pd.DataFrame(rows), 'fig12_dates.csv')
+        weekday_rows = [row for row in rows if row['scope'] == 'weekday']
+        q = self.raw('pems_dates_display')
+        v = q.groupby(['date', 'rep', 'arm']).native_episode_reward.mean().unstack('arm')
+        rng = np.random.default_rng(20261023)
+        date_rows = []
+        for key, group in v.groupby(level='date'):
+            a = group[['PPO', 'FS1']].to_numpy()
+            boot = a[rng.integers(0, len(a), size=(10000, len(a)))].mean(axis=1)
+            for j, arm in enumerate(['PPO', 'FS1']):
+                lo, hi = np.quantile(boot[:, j], [.025, .975])
+                date_rows.append(dict(scope='date', key=str(key), arm=arm, mean=a[:, j].mean(),
+                                      lower95=lo, upper95=hi, n=len(a)))
+        self.write(pd.DataFrame(date_rows + weekday_rows), 'fig12_dates.csv')
 
     def figure13(self):
         q = self.details('pems_spatial', 'trace')
@@ -223,19 +236,19 @@ class Builder:
         for width in [4, 5]:
             raw = self.raw(f'lane{width}')
             cases = self.read(self.project / f'configs/test_cases_{width}lane.csv')
-            expected = cases.set_index('case_id').scenario_sha256
-            if not set(raw.case_id).issubset(expected.index):
+            expected = cases.set_index('case_id')
+            if set(raw.case_id) != set(expected.index):
                 raise ValueError(f'Figure 15: unmatched {width}-lane case IDs')
-            hashes = raw.case_id.map(expected)
-            if not raw.scenario_sha256.eq(hashes).all():
-                raise ValueError(f'Figure 15: {width}-lane demand fingerprint mismatch')
+            for key in ['traffic_seed', 'p', 'date']:
+                if key in raw and not raw[key].eq(raw.case_id.map(expected[key])).all():
+                    raise ValueError(f'Figure 15: unmatched {key}')
             if not raw.lanes.eq(width).all() or raw[fields].isna().any().any():
                 raise ValueError(f'Figure 15: invalid {width}-lane metrics')
             for _, group in raw.groupby('case_id'):
                 if set(group.arm) != {'Transfer', 'Retrained', 'FS1'}:
                     raise ValueError('Figure 15: incomplete controller comparison')
                 for arm in ['Transfer', 'Retrained']:
-                    if sorted(group[group.arm.eq(arm)].training_seed) != SEEDS:
+                    if sorted(group[group.arm.eq(arm)].training_seed) != LANE_SEEDS[width]:
                         raise ValueError('Figure 15: unmatched training seeds')
                 if len(group[group.arm.eq('FS1')]) != 1:
                     raise ValueError('Figure 15: duplicate FS1 baseline')
@@ -247,6 +260,5 @@ class Builder:
     def build(self, figures):
         for figure in sorted(figures):
             getattr(self, f'figure{figure:02d}')()
-        manifest = dict(figures=sorted(figures), sources_sha256=self.sources, tables=self.tables)
-        (self.output / 'generated_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+        manifest = dict(figures=sorted(figures), tables=self.tables)
         return manifest

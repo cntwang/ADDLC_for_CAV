@@ -19,8 +19,8 @@ def profiles(data, output):
     table = read_table(data, ["p", "arm", "unit", "density", "speed"])
     ps = [.1, .3, .5, .7, .9]
     styles = ['o-', 's--', '^-', 'v--', 'D:', 'P-.', 'x-']
-    with plt.rc_context({'font.size': 15, 'axes.titlesize': 17, 'axes.labelsize': 16,
-                         'xtick.labelsize': 13, 'ytick.labelsize': 13,
+    with plt.rc_context({'font.size': 16, 'axes.titlesize': 18, 'axes.labelsize': 17,
+                         'xtick.labelsize': 15, 'ytick.labelsize': 15,
                          'mathtext.fontset': 'stix'}):
         for letter, metric in [('a', 'density'), ('b', 'speed')]:
             speed = metric == 'speed'
@@ -39,15 +39,15 @@ def profiles(data, output):
             if speed:
                 axes[0].set_ylim(0, 85)
                 handles, labels = axes[0].get_legend_handles_labels()
-                fig.legend(handles, labels, loc='lower center', ncol=7, fontsize=11,
+                fig.legend(handles, labels, loc='lower center', ncol=7, fontsize=12,
                            frameon=False, bbox_to_anchor=(.52, -.005))
-                fig.supxlabel('Unit index (upstream to downstream)', y=.15, fontsize=16)
+                fig.supxlabel('Unit index (upstream to downstream)', y=.15, fontsize=17)
             else:
                 visible = np.any(np.isclose(table.p.to_numpy()[:, None], ps), axis=1)
                 axes[0].set_ylim(0, table.loc[visible, 'density'].max() * 1.08)
             fig.subplots_adjust(left=.04, right=.995, bottom=.34 if speed else .14,
                                 top=.97 if speed else .84, wspace=.17)
-            save(fig, output, f'fig07_{letter}')
+            save(fig, output, f'fig09_{letter}')
 
 
 def density_metrics(data, output):
@@ -57,8 +57,8 @@ def density_metrics(data, output):
         ("b", "critical_density_RMSE", "Critical-density RMSE\n(veh/km/lane)"),
     ]
     ps = sorted(table.p.unique())
-    with plt.rc_context({'font.size': 15, 'axes.labelsize': 16,
-                         'xtick.labelsize': 14, 'ytick.labelsize': 14}):
+    with plt.rc_context({'font.size': 20, 'axes.labelsize': 22,
+                         'xtick.labelsize': 20, 'ytick.labelsize': 20}):
         for letter, metric, unit in panels:
             fig, ax = plt.subplots(figsize=(8.6, 4.9), layout='constrained')
             width = .79 / len(ARMS)
@@ -68,16 +68,16 @@ def density_metrics(data, output):
                        color=color, label=label(arm), edgecolor='#333333', lw=.4)
             ax.set_xticks(range(len(ps)), [f'{p:.1f}' for p in ps])
             ax.set(xlabel='CAV penetration rate', ylabel=unit)
-            ax.legend(fontsize=11, ncol=2, loc='upper right')
+            ax.legend(fontsize=16, ncol=2, loc='upper right')
             ax.set_ylim(0, table[metric].max() * 1.28)
             ax.grid(axis='y', alpha=.15)
             ax.set_axisbelow(True)
-            save(fig, output, f'fig08_{letter}')
+            save(fig, output, f'fig10_{letter}')
 
 
 
 def fuel(data, output):
-    table = read_table(data, ["p", "arm", "source_total_fuel_kg"])
+    table = read_table(data, ["p", "arm", "mean_fuel_kg_per_vehicle"])
     arms = ["Full", "Rule"] + [f"FS{i}" for i in range(1, 10)]
     colors = ["#ff8a72", "#428f89", "#ffba78", "#f6b45c", "#f7d281",
               "#bcd3cc", "#9bc9d0", "#71b3c5", "#4991aa", "#346988", "#244c72"]
@@ -87,12 +87,12 @@ def fuel(data, output):
     for j, (arm, color) in enumerate(zip(arms, colors)):
         q = table[table.arm.eq(arm)].set_index("p").loc[ps]
         x = np.arange(len(ps)) + (j - (len(arms) - 1) / 2) * width
-        ax.bar(x, q.source_total_fuel_kg / 1000, width * .94, color=color,
+        ax.bar(x, q.mean_fuel_kg_per_vehicle, width * .94, color=color,
                label=label(arm), edgecolor="#333333", lw=.4)
     ax.set_xticks(range(len(ps)), [f"{p:.1f}" for p in ps])
-    ax.set(xlabel="CAV penetration rate", ylabel="Total fuel consumption ($10^3$ kg)")
+    ax.set(xlabel="CAV penetration rate", ylabel="Average fuel consumption (kg/veh)")
     ax.legend(fontsize=12, ncol=6)
-    ax.set_ylim(0, table.source_total_fuel_kg.max() / 1000 * 1.25)
+    ax.set_ylim(0, table.mean_fuel_kg_per_vehicle.max() * 1.25)
     ax.grid(axis="y", alpha=.15)
     ax.set_axisbelow(True)
-    save(fig, output, "fig09")
+    save(fig, output, "fig07")

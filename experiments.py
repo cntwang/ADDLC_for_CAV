@@ -10,10 +10,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-SEEDS = [202610150, 202610151, 202610152]
+from cav_dl.utils.seeds import SEEDS, LANE_SEEDS
 ARMS = ['Full', 'NoDensity', 'NoCapacity', 'NoSafety', 'NoTime', 'NoEarlyPenalty']
 KEY = ['case_id', 'arm', 'training_seed', 'lanes', 'compliance']
-COLUMNS = ['series', 'job_id', *KEY, 'p', 'date', 'rep', 'traffic_seed', 'scenario_sha256',
+COLUMNS = ['series', 'job_id', *KEY, 'p', 'date', 'rep', 'traffic_seed',
     'native_episode_reward', 'native_reason', 'J_fixed_control', 'complete_tts', 'mean_entry_wait_h',
     'fixed_departures', 'total_departures', 'total_vehicles', 'end_step', 'success',
     'executed_lane_switches', 'rejected_controls', 'max_mass_error', 'max_CAV_error', 'area_error_max',
@@ -54,27 +54,31 @@ def plan(project, figures, limit=None):
                 add(case, 'synthetic', 'Full', seed)
                 for algorithm in ['SAC', 'DQN']:
                     add(case, 'algorithms', algorithm, seed, native=True)
-        spatial = bool(figures & {6, 7, 8}) and .1 <= p <= .9
+        spatial = False
         if 4 in figures:
             for arm in ARMS:
                 for seed in SEEDS:
                     add(case, 'synthetic', arm, seed, mode='spatial' if spatial and arm == 'Full' else '')
-        if spatial:
-            for seed in SEEDS: add(case, 'synthetic', 'Full', seed, mode='spatial')
-            for arm in ['Rule', 'FS1', 'FS2', 'FS3', 'FS4', 'FS5']:
-                add(case, 'synthetic', arm, mode='spatial')
-        if 9 in figures and .1 <= p <= .9:
-            for seed in SEEDS: add(case, 'synthetic', 'Full', seed)
-            for arm in ['Rule', *[f'FS{i}' for i in range(1, 10)]]:
-                add(case, 'synthetic', arm)
-        if 10 in figures:
+        if 6 in figures:
             for compliance in [1., .9, .8, .7, .6, .5]:
-                series = 'synthetic' if compliance == 1 else 'compliance'
+                series = 'compliance'
                 for seed in SEEDS: add(case, series, 'Full', seed, compliance=compliance)
                 for arm in ['Rule', 'FS1']: add(case, series, arm, compliance=compliance)
+    if 7 in figures:
+        for case in read_cases(project, 'fuel_cases.csv', limit):
+            for seed in SEEDS: add(case, 'fuel', 'Full', seed)
+            for arm in ['Rule', *[f'FS{i}' for i in range(1, 10)]]:
+                add(case, 'fuel', arm)
+    if figures & {8, 9, 10}:
+        for case in read_cases(project, 'spatial_cases.csv', limit):
+            for seed in SEEDS:
+                add(case, 'spatial', 'Full', seed, mode='spatial')
+            for arm in ['Rule', 'FS1', 'FS2', 'FS3', 'FS4', 'FS5']:
+                add(case, 'spatial', arm, mode='spatial')
     if 12 in figures:
         for series, filename, daily in [('pems_penetration', 'test_cases_pems.csv', False),
-                                         ('pems_dates', 'pems_dates.csv', True)]:
+                                         ('pems_dates', 'pems_dates.csv', True),
+                                         ('pems_dates_display', 'pems_dates_display.csv', True)]:
             for case in read_cases(project, filename, limit, daily):
                 for seed in SEEDS: add(case, series, 'PPO', seed, native=True)
                 add(case, series, 'FS1', native=True)
@@ -86,7 +90,7 @@ def plan(project, figures, limit=None):
         for lanes in [4, 5]:
             for case in read_cases(project, f'test_cases_{lanes}lane.csv', limit):
                 for arm in ['Transfer', 'Retrained']:
-                    for seed in SEEDS: add(case, f'lane{lanes}', arm, seed, lanes, native=True)
+                    for seed in LANE_SEEDS[lanes]: add(case, f'lane{lanes}', arm, seed, lanes, native=True)
                 add(case, f'lane{lanes}', 'FS1', lanes=lanes, native=True)
     return list(tasks.values())
 
@@ -127,26 +131,44 @@ def execute(task):
     case = task['case']
     metadata = {key: task[key] for key in ['series', 'job_id', *KEY]}
     metadata.update(p=float(case['p']), date=case.get('date'), rep=case.get('rep'),
-                    traffic_seed=int(case['traffic_seed']),
-                    scenario_sha256=case['scenario_sha256'])
+                    traffic_seed=int(case['traffic_seed']))
     try:
-        if 'date' in case:
+        if task['series'] == 'fuel':
+            from cav_dl.data.fuel import case_data
+            data = case_data(case)
+        elif task['series'] == 'spatial':
+            from cav_dl.data.spatial import case_data
+            data = case_data(case)
+        elif 'date' in case:
             demand = PeMSDemand(PROJECT / 'assets/pems', task['lanes'], scale=case['boundary_scale'])
             data = demand.scene(metadata['traffic_seed'], case['p'], case['date'],
                                 composition_scale=case.get('composition_scale'))
         else:
             data = scene(metadata['traffic_seed'], case['p'], MODES[int(case['main'])], MODES[int(case['ramp'])])
-        if data['sha256'] != case['scenario_sha256']: raise ValueError('Scenario fingerprint mismatch')
+        if 'scenario_sha256' in case and data['sha256'] != case['scenario_sha256']:
+            raise ValueError('Scenario fingerprint mismatch')
         policy = model(task)
         result = {}
         if task['native']:
             native = native_episode(data, policy, task['lanes'])
             result.update(native_episode_reward=native['J_episode'], native_reason=native['reason'])
-        if task['series'] not in ['pems_penetration', 'pems_dates']:
+        if task['series'] not in ['pems_penetration', 'pems_dates', 'pems_dates_display']:
             recorder = Recorder(OUTPUT / task['series'] / 'details', task['job_id'], metadata,
                                 task['mode'], clock_offset=3.) if task['mode'] else None
-            result.update(clearance_episode(data, policy, task['lanes'],
-                                            compliance=task['compliance'], recorder=recorder))
+            try:
+                result.update(clearance_episode(data, policy, task['lanes'],
+                                                compliance=task['compliance'], recorder=recorder))
+            except RuntimeError as error:
+                if task['series'] != 'fuel' or not str(error).startswith('Demand did not clear:'):
+                    raise
+                extensions = OUTPUT / 'fuel' / 'clearance_extensions'
+                extensions.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame([dict(job_id=task['job_id'], initial_limit_hours=120,
+                                   extended_limit_hours=150, initial_error=str(error))]).to_csv(
+                    extensions / f"{task['job_id']}.csv", index=False)
+                result.update(clearance_episode(data, policy, task['lanes'],
+                                                compliance=task['compliance'], recorder=recorder,
+                                                max_steps=36000))
         return dict(**metadata, **result, physical_failure=False)
     except Exception as error:
         return dict(**metadata, physical_failure=True, success=False, error=repr(error))
@@ -159,7 +181,7 @@ def run(project, output, figures, workers=4, limit=None, resume=False):
     payload = dict(figures=sorted(figures), case_limit=limit, tasks=tasks,
                    models=json.loads((project / 'models/index.json').read_text()))
     for record in payload['models']:
-        for name, expected in record['sha256'].items():
+        for name, expected in record.get('sha256', {}).items():
             actual = hashlib.sha256((project / record['path'] / name).read_bytes()).hexdigest()
             if actual != expected: raise ValueError(f'Model fingerprint mismatch: {record["path"]}/{name}')
     payload['code_sha256'] = {str(path.relative_to(project)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -254,3 +276,4 @@ def main(project=None):
 
 if __name__ == '__main__':
     main()
+

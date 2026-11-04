@@ -27,12 +27,12 @@ def configure(extension="pdf"):
         "axes.spines.right": False,
     })
 
-def save(fig, output, name):
+def save(fig, output, name, pad_inches=0.06):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     for extension in FORMATS:
         fig.savefig(
             output / f"{name}.{extension}",
-            bbox_inches="tight", pad_inches=0.06, dpi=300,
+            bbox_inches="tight", pad_inches=pad_inches, dpi=300,
         )
     plt.close(fig)

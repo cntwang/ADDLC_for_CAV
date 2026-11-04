@@ -24,6 +24,9 @@ def spatial(history, cutoff, lanes):
     cells = pd.DataFrame(dict(kind=np.array(['DL', 'GL', 'CAV'])[kind.ravel()],
                               cell=cell.ravel() + 1, distance_km=distance.ravel(),
                               vehicle_hours=hours.ravel()))
+    cells['observed_steps'] = len(z)
+    cells['dl_active_steps'] = np.tile(active.sum(axis=0), 3)
+    cells['dl_empty_steps'] = np.tile((active & (z[:, :, k.DC] <= 1e-10)).sum(axis=0), 3)
     cells['speed_kmh'] = np.divide(cells.distance_km, cells.vehicle_hours,
                                    out=np.full(len(cells), np.nan), where=cells.vehicle_hours > 1e-10)
     rho = z[:, :, k.RHO].mean(0).reshape(6, 20).mean(1)

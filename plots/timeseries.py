@@ -62,34 +62,40 @@ def synthetic(data, inputs, lanes, output):
                 ax.set_ylim(0, 85)
         ax.set(xlabel="Simulation time (h)", xlim=(0, 10.5))
         if letter != "e":
-            ax.legend(fontsize=10)
+            if letter == "d":
+                ax.legend(fontsize=ax.xaxis.label.get_fontsize(), ncol=2,
+                          loc='lower center', bbox_to_anchor=(.5, 1.02),
+                          handlelength=1.3, columnspacing=.8, frameon=False)
+            else:
+                ax.legend(fontsize=ax.xaxis.label.get_fontsize())
             ax.grid(alpha=.15)
         save(fig, output, f"fig05_{letter}")
 
 
 def pems_control(data, lanes, difference, output):
-    q = read_table(data, ["arm", "time_h", "density", "cumulative_outflow"])
-    actions = read_table(lanes, ["time_h", "unit", "lanes"])
-    gain = read_table(difference, ["time_h", "outflow_difference"])
-    fig, axes = plt.subplots(2, 1, figsize=(7, 5), layout="constrained")
-    for arm, color in [("FS1", "#c7a449"), ("PPO", "#b4494e")]:
-        group = q[q.arm.eq(arm)].sort_values("time_h")
-        axes[0].plot(group.time_h, group.density, color=color,
-                     label="ADDLC" if arm == "PPO" else arm)
-    axes[0].set_ylabel("Density\n(veh/km/lane)")
-    axes[0].legend(fontsize=12)
-    image = lane_image(axes[1], actions, [3.5, 13.5, .5, 4.5], origin="lower")
-    axes[1].set(xlabel="Time (h)", ylabel="Controlled unit", yticks=[1, 2, 3, 4])
-    fig.colorbar(image, ax=axes[1], ticks=[0, 1, 2], label="DL count")
-    save(fig, output, "fig13_a")
-    fig, ax = plt.subplots(figsize=(6.5, 4), layout="constrained")
-    ax.plot(gain.time_h, gain.outflow_difference, color="#b4494e",
-            label="ADDLC minus FS1")
-    ax.axhline(0, color="grey", lw=.8)
-    ax.set(xlabel="Time (h)", ylabel="Cumulative outflow difference (veh)")
-    ax.grid(alpha=.15)
-    ax.legend(fontsize=12)
-    save(fig, output, "fig13_b")
+    with plt.rc_context({"axes.labelsize": 18, "xtick.labelsize": 16, "ytick.labelsize": 16}):
+        q = read_table(data, ["arm", "time_h", "density", "cumulative_outflow"])
+        actions = read_table(lanes, ["time_h", "unit", "lanes"])
+        gain = read_table(difference, ["time_h", "outflow_difference"])
+        fig, axes = plt.subplots(2, 1, figsize=(7.5, 4.8), layout="constrained")
+        for arm, color in [("FS1", "#c7a449"), ("PPO", "#b4494e")]:
+            group = q[q.arm.eq(arm)].sort_values("time_h")
+            axes[0].plot(group.time_h, group.density, color=color,
+                         label="ADDLC" if arm == "PPO" else arm)
+        axes[0].set_ylabel("Density\n(veh/km/lane)")
+        axes[0].legend(fontsize=14, loc="upper left")
+        image = lane_image(axes[1], actions, [3.5, 13.5, .5, 4.5], origin="lower")
+        axes[1].set(xlabel="Time of day (h)", ylabel="Controlled\nunit", yticks=[1, 2, 3, 4])
+        fig.colorbar(image, ax=axes[1], ticks=[0, 1, 2], label="DL count")
+        save(fig, output, "fig13_a")
+        fig, ax = plt.subplots(figsize=(7.5, 4.8), layout="constrained")
+        ax.plot(gain.time_h, gain.outflow_difference, color="#b4494e",
+                label="ADDLC minus FS1")
+        ax.axhline(0, color="grey", lw=.8)
+        ax.set(xlabel="Time of day (h)", ylabel="Cumulative outflow\ndifference (veh)")
+        ax.grid(alpha=.15)
+        ax.legend(fontsize=16)
+        save(fig, output, "fig13_b")
 
 
 def pems_heatmaps(data, output):
@@ -102,7 +108,7 @@ def pems_heatmaps(data, output):
         group = q[q.arm.eq(arm)]
         for letter, (metric, unit) in zip(letters, units.items()):
             matrix = group.pivot(index="cell", columns="time_h", values=metric)
-            fig, ax = plt.subplots(figsize=(6.5, 4.5), layout="constrained")
+            fig, ax = plt.subplots(figsize=(6.4, 4.8), layout="constrained")
             
             low, high = q[metric].min(), q[metric].max()
             image = ax.imshow(
@@ -110,6 +116,13 @@ def pems_heatmaps(data, output):
                 extent=[matrix.columns.min(), matrix.columns.max(), 120, 0],
                 vmin=low, vmax=high, cmap="viridis", interpolation="nearest",
             )
-            ax.set(xlabel="Time (h)", ylabel="Cell index")
-            fig.colorbar(image, ax=ax, label=unit)
+            ax.set_xticks([4, 6, 8, 10, 12])
+            ax.set_yticks([0, 20, 40, 60, 80, 100, 120])
+            ax.set_xlabel("Time (h)", fontsize=24)
+            ax.set_ylabel("Cell index", fontsize=24)
+            ax.tick_params(axis="both", labelsize=20)
+            ticks = {"density": list(range(10, 91, 10)), "flow": [2000, 4000, 6000, 8000, 10000], "speed": list(range(20, 81, 10))}[metric]
+            colorbar = fig.colorbar(image, ax=ax, ticks=ticks)
+            colorbar.set_label(unit, fontsize=24)
+            colorbar.ax.tick_params(labelsize=20)
             save(fig, output, f"fig14_{letter}")

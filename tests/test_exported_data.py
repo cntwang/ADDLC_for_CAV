@@ -17,7 +17,7 @@ class ExportedResults(unittest.TestCase):
         lane = pd.read_csv(self.root / "fig15.csv")
         self.assertEqual(len(lane), 6)
         self.assertEqual(len(lane[["lanes", "arm"]].drop_duplicates()), 6)
-        speed = pd.read_csv(self.root / "fig06.csv")
+        speed = pd.read_csv(self.root / "fig08.csv")
         self.assertEqual(set(np.round(speed.p.unique(), 1)), {i / 10 for i in range(1, 10)})
         self.assertEqual(len(speed), 9 * 7 * 3 * 120)
         self.assertEqual(
@@ -25,7 +25,7 @@ class ExportedResults(unittest.TestCase):
         )
 
     def test_velocity_matches_distance_over_exposure(self):
-        q = pd.read_csv(self.root / "fig06.csv")
+        q = pd.read_csv(self.root / "fig08.csv")
         mask = q.vehicle_hours.gt(1e-10)
         np.testing.assert_allclose(
             q.loc[mask, "speed_kmh"],

@@ -10,8 +10,8 @@ import pandas as pd
 
 FIELDS = ["init_car", "init_cav_ratio", "input_supply", "input_cav_supply",
           "ramp_inflow", "ramp_cav_ratio"]
-MANIFEST_FIELDS = ["case_id", "traffic_seed", "p", "main", "ramp", "date", "rep",
-                   "boundary_scale", "composition_scale", "scenario_sha256"]
+MANIFEST_FIELDS = ["case_id", "traffic_seed", "p", "main", "ramp", "date", "rep", "family", "arrivals", "ramp_share",
+                   "boundary_scale", "composition_scale", "main_scale", "ramp_scale", "demand_id", "scenario_sha256"]
 
 
 def read_manifest(path):
@@ -20,13 +20,15 @@ def read_manifest(path):
         if new not in table and old in table:
             table = table.rename(columns={old: new})
     required = {"case_id", "traffic_seed", "p"}
-    if "date" not in table:
+    if "family" in table:
+        required.update(["family", "arrivals", "ramp_share"])
+    elif "date" not in table:
         required.update(["main", "ramp"])
     missing = required - set(table.columns)
     if missing:
         raise ValueError(f"Missing scenario fields: {sorted(missing)}")
     table = table[[name for name in MANIFEST_FIELDS if name in table]].copy()
-    for name in ["case_id", "traffic_seed", "main", "ramp", "rep"]:
+    for name in ["case_id", "traffic_seed", "main", "ramp", "rep", "family"]:
         if name in table:
             value = pd.to_numeric(table[name], errors="raise")
             if not np.isfinite(value).all() or (value % 1 != 0).any():
@@ -37,7 +39,16 @@ def read_manifest(path):
         raise ValueError("p must be between 0 and 1")
     if table.case_id.duplicated().any():
         raise ValueError("case_id must be unique within a scenario manifest")
-    for name in ["boundary_scale", "composition_scale"]:
+    if "family" in table:
+        if not table.family.between(0, 5).all():
+            raise ValueError("family must be from 0 to 5")
+        for name in ["arrivals", "ramp_share"]:
+            table[name] = pd.to_numeric(table[name], errors="raise")
+            if not np.isfinite(table[name]).all():
+                raise ValueError(f"{name} must be finite")
+        if (table.arrivals <= 0).any() or not table.ramp_share.between(0, 1).all():
+            raise ValueError("arrivals must be positive and ramp_share must be between 0 and 1")
+    for name in ["boundary_scale", "composition_scale", "main_scale", "ramp_scale"]:
         if name in table:
             table[name] = pd.to_numeric(table[name], errors="raise")
             if not np.isfinite(table[name]).all() or (table[name] <= 0).any():
@@ -105,6 +116,12 @@ def main():
             data["boundary_scale"] = float(demand.scale)
             if hasattr(row, "composition_scale"):
                 data["composition_scale"] = float(row.composition_scale)
+        elif hasattr(row, 'family'):
+            from .fuel import case_data
+            data = case_data(row._asdict())
+        elif hasattr(row, 'main_scale'):
+            from .spatial import case_data
+            data = case_data(row._asdict())
         else:
             data = scene(int(row.traffic_seed), float(row.p), MODES[int(row.main)], MODES[int(row.ramp)])
         case_id = int(row.case_id)

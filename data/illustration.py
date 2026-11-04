@@ -77,7 +77,7 @@ def generate(project, output):
     for arm,algorithm,model in [('Full','ppo',Q/f'models/synthetic/Full/PPO_seed{training_seed}'),('FS1','FS1',None)]:
         rec=History();policy=load_policy(algorithm,model)
         metrics=clearance_episode(data,policy,recorder=rec)
-        rows.append(dict(arm=arm,traffic_seed=seed,p=p,scenario_sha256=data['sha256'],**metrics))
+        rows.append(dict(arm=arm,traffic_seed=seed,p=p,**metrics))
         z=rec.z; region=z[:,20:100]
         stock=region[:,:,k.N].sum(1)
         cv=(region[:,:,k.N]*region[:,:,k.P]).sum(1)

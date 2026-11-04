@@ -13,11 +13,11 @@ def render(data, output):
         raise ValueError('Cell velocities require p=0.1 through 0.9')
     labels = [f'{"ADDLC" if a == "Full" else "Rule-based" if a == "Rule" else a} | {k} velocity'
               for a, k in order]
-    with plt.rc_context({'font.size': 13, 'axes.titlesize': 17, 'axes.labelsize': 14,
+    with plt.rc_context({'font.size': 13, 'axes.titlesize': 14, 'axes.labelsize': 14,
                          'xtick.labelsize': 13, 'ytick.labelsize': 10,
                          'mathtext.fontset': 'stix'}):
-        fig, axes = plt.subplots(3, 3, figsize=(10, 11), sharex=True, sharey=True)
-        fig.subplots_adjust(left=.24, right=.92, bottom=.055, top=.97, wspace=.055, hspace=.18)
+        fig, axes = plt.subplots(3, 3, figsize=(14, 11), sharex=True, sharey=True)
+        fig.subplots_adjust(left=.19, right=.92, bottom=.065, top=.97, wspace=.055, hspace=.12)
         cmap = plt.get_cmap('Spectral').copy()
         cmap.set_bad('white')
         for i, (ax, p) in enumerate(zip(axes.flat, ps)):
@@ -37,4 +37,4 @@ def render(data, output):
                 ax.set_xlabel('Cell index')
         fig.colorbar(im, cax=fig.add_axes([.94, .16, .013, .69]),
                      label='Velocity (km/h)', ticks=[0, 20, 40, 60, 80])
-        save(fig, output, 'cell_velocity')
+        save(fig, output, 'cell_velocity', pad_inches=.01)

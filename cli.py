@@ -24,16 +24,18 @@ def render(figure, data, output):
     elif figure == 5:
         timeseries.synthetic(source("fig05.csv"), source("fig05_input.csv"),
                              source("fig05_lanes.csv"), output)
-    elif figure == 6:
-        velocity.render(source("fig06.csv"), output)
-    elif figure == 7:
-        spatial.profiles(source("fig07.csv"), output)
     elif figure == 8:
-        spatial.density_metrics(source("fig08.csv"), output)
+        velocity.render(source("fig08.csv"), output)
+        if hasattr(velocity, "activation") and source("fig08_activation_runs.csv").exists():
+            velocity.activation(source("fig08_activation_runs.csv"), output)
     elif figure == 9:
-        spatial.fuel(source("fig09.csv"), output)
+        spatial.profiles(source("fig09.csv"), output)
     elif figure == 10:
-        compliance.render(source("fig10.csv"), output)
+        spatial.density_metrics(source("fig10.csv"), output)
+    elif figure == 7:
+        spatial.fuel(source("fig07.csv"), output)
+    elif figure == 6:
+        compliance.render(source("fig06.csv"), output)
     elif figure == 11:
         demand.empirical(source("fig11.csv"), output)
     elif figure == 12:

@@ -1,23 +1,22 @@
-"""Matched TTS reduction by compliance; no scenario filtering or inference."""
-
+"""Plot matched compliance outcomes from CSV."""
 import numpy as np
-import matplotlib.pyplot as plt
-
-from cav_dl.utils.io import read_table
-from cav_dl.utils.style import save
-
+import pandas as pd
 
 def render(data, output):
-    table = read_table(data, ["p", "compliance", "PPO_vs_FS1_TTS_pct"])
-    for letter, c in zip("abcdef", [1., .9, .8, .7, .6, .5]):
-        q = table[np.isclose(table.compliance, c)].sort_values("p")
-        # Original plot omitted the known numerically sensitive p=0 diagnostic.
-        q = q[q.p.gt(0)]
-        fig, ax = plt.subplots(figsize=(5.5, 4), layout="constrained")
-        ax.plot(q.p, q.PPO_vs_FS1_TTS_pct, "o-", color="#bd443d", label="PPO vs FS1")
-        ax.axhline(0, color="grey", ls="--", lw=.8)
-        ax.set(xlabel="CAV penetration rate", ylabel="Complete TTS reduction (%)",
-               xlim=(.05, .95), ylim=(-6, 22), xticks=[.1, .3, .5, .7, .9])
-        ax.legend(fontsize=13)
-        ax.grid(alpha=.15)
-        save(fig, output, f"fig10_{letter}")
+    from cav_dl.utils.style import configure,save
+    import matplotlib.pyplot as plt
+    q=pd.read_csv(data)
+    with plt.rc_context({'font.size':17,'axes.titlesize':19,'axes.labelsize':18,'xtick.labelsize':16,'ytick.labelsize':16}):
+        fig, axes=plt.subplots(2,3,figsize=(15,8.8),sharex=True,sharey=True)
+        for ax,c in zip(axes.flat,[1,.9,.8,.7,.6,.5]):
+            s=q[q.compliance.eq(c)&q.p.between(.1,.9)].sort_values('p')
+            ax.plot(s.p,s.PPO_vs_FS1_TTS_pct,'o-',color='#49666d',lw=2,ms=5)
+            ax.fill_between(s.p,s.PPO_vs_FS1_low95_pct,s.PPO_vs_FS1_high95_pct,color='#49666d',alpha=.16,lw=0)
+            ax.axhline(0,color='gray',lw=.8,ls='--')
+            ax.set_title(f'HV compliance = {c:.1f}',pad=10)
+            ax.set_xticks([.1,.3,.5,.7,.9]); ax.grid(alpha=.18)
+        fig.supxlabel('CAV penetration rate',y=.02)
+        fig.supylabel('Complete TTS reduction relative to FS1 (%)',x=.01)
+        fig.tight_layout(rect=(.025,.055,1,1))
+        save(fig,output,'TTS_compliance')
+

@@ -32,14 +32,16 @@ def native_episode(data, policy, lanes=3, max_dl=None):
     raise RuntimeError("Native episode exceeded the documented control horizon")
 
 
-def clearance_episode(data, policy, lanes=3, max_dl=None, trajectory=None, compliance=1., recorder=None):
+def clearance_episode(data, policy, lanes=3, max_dl=None, trajectory=None, compliance=1., recorder=None, max_steps=28800):
     if not 0 <= compliance <= 1:
         raise ValueError("HV compliance must be in [0, 1]")
+    if compliance < 1 and max_steps != 28800:
+        raise ValueError('Extended clearance is supported under full compliance')
     if compliance < 1:
         from cav_dl.envs.noncompliance import StayNative
         env = StayNative(compliance, lanes, max_dl)
     else:
-        env = ClearanceNative(lanes, max_dl)
+        env = ClearanceNative(lanes, max_dl, max_steps=max_steps)
     env.reset(options=data, test=True)
     obs = env.observe()
     cutoff = len(data["input_supply"])
@@ -49,14 +51,14 @@ def clearance_episode(data, policy, lanes=3, max_dl=None, trajectory=None, compl
     fixed = departures = switches = rejects = 0.
     previous = np.zeros(4)
     max_n = max_c = 0.
-    while env.t < 28800 and not (env.t >= cutoff and env.residual() < 1e-7):
+    while env.t < max_steps and not (env.t >= cutoff and env.residual() < 1e-7):
         action = int(policy(obs))
         request = env.decode_discrete_action(action)
         config = np.zeros(120)
         for s, count in enumerate(request):
             config[(s + 1) * 20:(s + 2) * 20] = count
         env.rejected_microsteps = 0
-        env._advance(min(60, 28800 - env.t), config)
+        env._advance(min(60, max_steps - env.t), config)
         obs = env.observe()
         _, density, capacity, safety = env.kernel.reward_components(env._history, env.t, obs)
         occupancy = max(obs[4], obs[9], obs[14], obs[19], obs[24], obs[29])
